@@ -79,11 +79,22 @@ class UserController {
     const { email } = req.body;
 
     const result = await Tokens.create(email);
-    if (result) {
-  
+    if (result.status) {
       return res.status(200).json(`${result.token}`);
+    } else  {
+     return res.status(404).json("User not found");
+    }
+  }
+
+  async changePassword(req, res) {
+    const { token, password } = req.body;
+    
+    const isTokenValid = await Tokens.validate(token);
+    if (isTokenValid.status) {
+      await User.changePassword(password, isTokenValid.token.user_id, isTokenValid.token.token);
+      return res.status(200).json("password changed successfully")
     } else {
-      return res.status(500).json("Internal error");
+      return res.status(406).json("Invalid token");
     }
   }
 }

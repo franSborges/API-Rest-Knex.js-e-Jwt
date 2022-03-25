@@ -1,5 +1,6 @@
 const knex = require("../database/connection");
 const bcrypt = require("bcrypt");
+const Tokens = require("./Tokens");
 
 class User {
   async findAll() {
@@ -28,7 +29,7 @@ class User {
   async findByEmail(email) {
     try {
       const result = await knex.select(['id', 'name', 'email', 'role'])
-        .where({ email: email })
+        .where({ email: email})
         .table('users')
       if (result.length > 0) {
         return result[0];
@@ -41,7 +42,6 @@ class User {
   async register(name, email, password) {
     try {
       const hash = await bcrypt.hash(password, 10);
-
       await knex.insert({ name, email, password: hash, role: 0 }).table('users');
     } catch (err) {
       return err;
@@ -50,7 +50,7 @@ class User {
 
   async findEmail(email) {
     try {
-      const result = await knex.select('*').from('users').where({ email: email });
+      const result = await knex.select('*').from('usuarios').where({ email: email });
       if (result.length > 0) {
         return true;
       }
@@ -91,6 +91,17 @@ class User {
       return result;
     } catch (err) {
       return err;
+    }
+  }
+
+  async changePassword(newPassword, id, token) {
+    try {
+      const hash = await bcrypt.hash(newPassword, 10);
+      await knex.update({ password: hash }).where({ id: id }).table("users");
+      await Tokens.setUser(token);
+      return;
+    } catch (err) {
+      return err
     }
   }
 }

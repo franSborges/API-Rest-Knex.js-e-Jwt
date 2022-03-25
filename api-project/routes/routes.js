@@ -16,5 +16,6 @@ app.delete("/user/:id", userController.deleteUser);
 
 app.post("/recoverpassword", userController.recoverPassword);
 
+app.post("/changepassword", userController.changePassword);
 
 module.exports = app;
