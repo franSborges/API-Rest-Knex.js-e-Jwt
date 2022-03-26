@@ -1,5 +1,8 @@
 const User = require("../services/User");
 const Tokens = require("../services/Tokens");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const secret = "";
 
 class UserController {
   async listUsers(req, res) {
@@ -30,15 +33,18 @@ class UserController {
     if (!name || !email || !password) {
       return res.status(400).json("All fields are mandatory");
     }
-
     const emailExists = await User.findEmail(email);
 
     if (emailExists) {
       return res.status(406).json("E-mail already registered");
     }
 
-    await User.register(name, email, password)
-    return res.status(201).json("Registered User");
+    const result = await User.register(name, email, password)
+    if (result) {
+      return res.status(201).json("Registered User");
+    } else {
+      return res.status(400).json(result.error);
+    }
   }
   
   async updateUser(req, res) {
@@ -47,7 +53,7 @@ class UserController {
 
     const emailExists = await User.findEmail(email);
 
-    if (emailExists) {
+    if (emailExists.status) {
       return res.status(406).json("E-mail already registered");
     }
 
@@ -80,9 +86,10 @@ class UserController {
 
     const result = await Tokens.create(email);
     if (result.status) {
+      console.log(result.token);
       return res.status(200).json(`${result.token}`);
-    } else  {
-     return res.status(404).json("User not found");
+     } else  {
+     return res.status(404).json(result.error);
     }
   }
 
@@ -97,6 +104,32 @@ class UserController {
       return res.status(406).json("Invalid token");
     }
   }
+
+  async login(req, res) {
+    const { email, password } = req.body;
+
+    const user = await User.findByEmail(email);
+    if (user != undefined) {
+      const result = await bcrypt.compare(password, user.password);
+     
+     if (result) {
+       const token = jwt.sign(
+         {
+           email: user.email,
+           role: user.role
+         },
+         secret,
+         {
+           expiresIn: '1h'
+         });
+       return res.status(200).json(`login successfully, your token: ${token}`);
+     } else {
+       return res.status(406).json("Invalid token");
+     }
+     
+    }
+  }
 }
+
 
 module.exports = new UserController();

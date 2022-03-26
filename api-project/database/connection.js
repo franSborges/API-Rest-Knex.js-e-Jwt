@@ -1,11 +1,12 @@
-const knex = require("knex")({
-    client: '',
-    connection: {
-      host : '',
-      user : '',
-      password : '3',
-      database : ''
-    }
-  });
+const knex = require('knex')({
+  client: '',
+  connection: {
+    host : '',
+    port : '',
+    user : '',
+    password : '',
+    database : ''
+  }
+});
 
 module.exports = knex;

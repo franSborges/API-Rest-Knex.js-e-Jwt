@@ -5,8 +5,7 @@ const Tokens = require("./Tokens");
 class User {
   async findAll() {
     try {
-      const result = await knex.select(['id', 'name', 'email', 'role'])
-        .table('users');
+      const result = await knex.select(["id", "name", "email", "role"]).table("users");
       return result;
     } catch (err) {
       return err;
@@ -15,9 +14,9 @@ class User {
 
   async findById(id) {
     try {
-      const result = await knex.select(['id', 'name', 'email', 'role'])
+      const result = await knex.select(["id", "name", "email", "role"])
         .where({ id: id })
-        .table('users')
+        .table("users")
       if (result.length > 0) {
         return result[0];
       }
@@ -28,9 +27,9 @@ class User {
 
   async findByEmail(email) {
     try {
-      const result = await knex.select(['id', 'name', 'email', 'role'])
-        .where({ email: email})
-        .table('users')
+      const result = await knex.select(["id", "name", "password", "email", "role"])
+        .where({ email: email })
+        .table("users");
       if (result.length > 0) {
         return result[0];
       }
@@ -41,44 +40,40 @@ class User {
 
   async register(name, email, password) {
     try {
-      const hash = await bcrypt.hash(password, 10);
-      await knex.insert({ name, email, password: hash, role: 0 }).table('users');
+      const hash = await bcrypt.hash(password, 20);
+      const result = await knex.insert({ name, email, password: hash, role: 0 })
+        .table("users");
+      return result;
     } catch (err) {
-      return err;
+      return {error: err};
     }
   }
 
   async findEmail(email) {
     try {
-      const result = await knex.select('*').from('usuarios').where({ email: email });
+      const result = await knex.select("*").from("users").where({ email: email });
       if (result.length > 0) {
         return true;
       }
     } catch (err) {
-      return err;
+      return { error: err };
     }
   }
 
   async update(id, name, email, role) {
     const user = await this.findById(id);
-    const update = {};
+    const editUser = {};
     if (user) {
-      update.name = name;
-      update.email = email;
-      update.role = role;
+       editUser.name = name;
+       editUser.email = email;
+       editUser.role = role;
     }
-
+    
     try {
-      const verifyEmail = await knex.select('*').from('users').where({ email: email });
-      if (verifyEmail.length > 0) {
-        return true;
-      }
-      const result = await knex.update(update)
-        .where({ id: id })
-        .table('users');
-      return result;
+      await knex.update(editUser).where({ id: id }).table("users");
+      return {status: true};
     } catch (err) {
-      return err;
+      return { error: err };
     }
   }
 
@@ -87,21 +82,21 @@ class User {
     try {
       const result = await knex.delete(user)
         .where({ id: id })
-        .table('users');
+        .table("users");
       return result;
     } catch (err) {
-      return err;
+      return { error: err };
     }
   }
 
   async changePassword(newPassword, id, token) {
     try {
-      const hash = await bcrypt.hash(newPassword, 10);
+      const hash = await bcrypt.hash(newPassword, 20);
       await knex.update({ password: hash }).where({ id: id }).table("users");
       await Tokens.setUser(token);
       return;
     } catch (err) {
-      return err
+      return { error: err };
     }
   }
 }

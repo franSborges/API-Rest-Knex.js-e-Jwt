@@ -1,12 +1,16 @@
 const knex = require("../database/connection");
 const User = require("./User");
+
+
 const jwt = require("jsonwebtoken");
-const secret = "";
+const secret = '';
 
 class Tokens{
   async create(email) {
+    
     try {
-      const user = await User.findByEmail(email);
+
+    const user = await User.findByEmail(email);
 
       const token = jwt.sign({
         id: user.id,
@@ -16,16 +20,15 @@ class Tokens{
         expiresIn: "2h"
       });
 
-      if (user) {
-        await knex.insert({
-          token: token,
-          user_id: user.id,
-          used: false
-        }).table("tokens");
-
+      await knex.insert({
+        token: token,
+        user_id: user.id,
+        used: false
+      }).table("tokens");
         return {status: true, token: token};
-      }
+      
     } catch (err) {
+      console.error(err);
       return { error: err };
     }
   }
