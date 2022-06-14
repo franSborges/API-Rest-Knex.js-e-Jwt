@@ -1,2 +1,4 @@
-# API-Rest-Knex.js-e-Jwt
-API Rest de usuários com Knex.js e Jwt
+# User Management
+------------------------
+
+User management application using a Knex query builder and relying on JWT authentication.
